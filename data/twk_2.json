@@ -1,0 +1,14 @@
+[
+    {
+        "q": "Berdasarkan UUD 1945, kekuasaan tertinggi negara berada di tangan...",
+        "opts": ["Presiden", "DPR", "MPR", "Rakyat", "Mahkamah Agung"],
+        "answer": "Rakyat",
+        "explanation": "Berdasarkan UUD 1945 Pasal 1 ayat (2) hasil amandemen, kedaulatan berada di tangan rakyat dan dilaksanakan menurut Undang-Undang Dasar."
+    },
+    {
+        "q": "Lembaga yang berwenang menguji undang-undang terhadap UUD 1945 adalah...",
+        "opts": ["Komisi Yudisial", "Mahkamah Agung", "Mahkamah Konstitusi", "DPR", "Presiden"],
+        "answer": "Mahkamah Konstitusi",
+        "explanation": "Mahkamah Konstitusi (MK) memiliki kewenangan menguji undang-undang terhadap UUD 1945 (Judicial Review) sesuai dengan Pasal 24C UUD 1945."
+    }
+]
