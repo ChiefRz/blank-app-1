@@ -19,8 +19,6 @@ if 'current_q' not in st.session_state:
     st.session_state.current_q = 0
 if 'answers' not in st.session_state:
     st.session_state.answers = {}
-if 'doubts' not in st.session_state:
-    st.session_state.doubts = set()
 if 'exam_data' not in st.session_state:
     st.session_state.exam_data = []
 if 'end_time' not in st.session_state:
@@ -28,6 +26,25 @@ if 'end_time' not in st.session_state:
 if 'exam_title' not in st.session_state:
     st.session_state.exam_title = ""
 if 'scroll_to_top' not in st.session_state:
+    st.session_state.scroll_to_top = False
+
+if st.session_state.scroll_to_top:
+    components.html(
+        """
+        <script>
+            // Mencari container utama Streamlit
+            var mainContainer = window.parent.document.querySelector('[data-testid="stAppViewContainer"]');
+            if (mainContainer) {
+                mainContainer.scrollTop = 0; // Scroll container ke 0
+            }
+            
+            // Backup untuk struktur lama atau mobile
+            window.parent.scrollTo(0, 0);
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
     st.session_state.scroll_to_top = False
 
 # 3. CSS Kustom 
@@ -45,22 +62,6 @@ st.markdown("""
     .wrong-ans { color: #dc3545; font-weight: bold; }
     </style>
 """, unsafe_allow_html=True)
-
-if st.session_state.scroll_to_top:
-    scroll_js = """
-    <script>
-        const parentDoc = window.parent.document;
-        // Mencari semua kemungkinan container scroll di Streamlit dan memaksanya ke posisi 0
-        const containers = parentDoc.querySelectorAll('.main, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"]');
-        containers.forEach(container => {
-            container.scrollTop = 0;
-        });
-        parentDoc.documentElement.scrollTop = 0;
-        parentDoc.body.scrollTop = 0;
-    </script>
-    """
-    components.html(scroll_js, height=0)
-    st.session_state.scroll_to_top = False
 
 # Fungsi untuk memuat soal dari JSON
 def load_exam(file_name, title, duration_minutes):
@@ -87,7 +88,7 @@ def show_landing_page():
     st.markdown("#### 🎓 Uji Coba Tes CPNS")
     st.divider()
     st.title("Selamat Datang.")
-    st.markdown("Silakan pilih modul ujian yang tersedia di bawah ini. Pastikan koneksi internet Anda stabil sebelum memulai.")
+    st.markdown("Silakan pilih modul ujian yang tersedia di bawah ini.")
     st.write("") 
 
     col1, col2, col3 = st.columns(3)
@@ -98,7 +99,6 @@ def show_landing_page():
             st.write("")
             if st.button("Mulai Ujian", key="twk_1"):
                 st.session_state.scroll_to_top = True 
-                # Panggil fungsi load_exam (nama file, judul, durasi dalam menit)
                 load_exam("twk_1.json", "Tes Wawasan Kebangsaan 1", 30)
     with col2:
         with st.container(border=True):
@@ -107,7 +107,6 @@ def show_landing_page():
             st.write("")
             if st.button("Mulai Ujian", key="twk_2"):
                 st.session_state.scroll_to_top = True 
-                # Panggil fungsi load_exam (nama file, judul, durasi dalam menit)
                 load_exam("twk_2.json", "Tes Wawasan Kebangsaan 2", 30)
 
 # ==========================================
@@ -117,7 +116,6 @@ def show_exam_page():
     questions = st.session_state.exam_data
     total_q = len(questions)
     
-    # Keamanan jika data kosong
     if total_q == 0:
         st.error("Data ujian kosong.")
         return
@@ -129,7 +127,6 @@ def show_exam_page():
     
     cols = st.sidebar.columns(5)
     for i in range(total_q):
-        # Menyederhanakan logika: hanya mengecek apakah sudah dijawab atau belum
         status = "🟦" if str(i) in st.session_state.answers else "⬜"
         
         with cols[i % 5]:
@@ -139,10 +136,8 @@ def show_exam_page():
                 st.rerun()
 
     # --- BAGIAN ATAS (STICKY HEADER & TIMER) ---
-    # Menggunakan JavaScript untuk visual timer yang berjalan mundur
     time_left = int(st.session_state.end_time - time.time())
     
-    # 1. Tampilkan UI Header (Tetap gunakan st.markdown untuk layout)
     st.markdown(f"""
         <div class="sticky-header">
             <div style="font-weight: bold; font-size: 18px; color: #0B192C;">Ujian: {st.session_state.exam_title}</div>
@@ -150,31 +145,21 @@ def show_exam_page():
         </div>
     """, unsafe_allow_html=True)
     
-    # 2. Jalankan Skrip Timer menggunakan st.components.v1.html
-    # Height disetel 0 agar iframe tidak memakan tempat (tersembunyi)
     components.html(f"""
         <script>
             var timeLeft = {time_left};
-            // Gunakan window.parent.document untuk menargetkan elemen di luar iframe komponen
             var timerDisplay = window.parent.document.getElementById("timer_display");
-            
             if (timerDisplay) {{
                 var timerId = setInterval(function() {{
                     if (timeLeft <= 0) {{
                         clearInterval(timerId);
                         timerDisplay.innerHTML = "WAKTU HABIS";
-                        
-                        // Opsional: Paksa refresh otomatis saat waktu habis
-                        // agar Python backend segera memproses pengumpulan ujian
                         window.parent.location.reload();
                     }} else {{
                         var m = Math.floor(timeLeft / 60);
                         var s = timeLeft % 60;
-                        
-                        // Tambahkan angka 0 di depan jika waktu di bawah 10 (misal: 09:05)
                         m = m < 10 ? "0" + m : m;
                         s = s < 10 ? "0" + s : s;
-                        
                         timerDisplay.innerHTML = "⏱️ " + m + ":" + s;
                         timeLeft--;
                     }}
@@ -183,7 +168,6 @@ def show_exam_page():
         </script>
     """, height=0)
 
-    # 3. Cek jika waktu habis dari sisi Python
     if time_left <= 0:
         st.warning("Waktu Anda telah habis! Ujian otomatis dikumpulkan.")
         st.session_state.page = 'result'
@@ -209,32 +193,32 @@ def show_exam_page():
     st.write("")
     st.write("")
 
-    # --- NAVIGASI BAWAH (FOOTER KONTROL) ---
+    # --- NAVIGASI BAWAH ---
     st.divider()
     col_prev, col_next = st.columns([1, 1])
 
     with col_prev:
         if curr > 0:
-            if st.button("⬅️ Sebelumnya", use_container_width=True):
-                st.session_state.scroll_to_top = True 
+            if st.button("⬅️ Sebelumnya", use_container_width=True): 
                 st.session_state.current_q -= 1
+                st.session_state.scroll_to_top = True
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
 
     with col_next:
         if curr < total_q - 1:
             if st.button("Selanjutnya ➡️", use_container_width=True):
-                st.session_state.scroll_to_top = True 
                 st.session_state.current_q += 1
+                st.session_state.scroll_to_top = True
                 st.rerun()
         else:
-            if st.button("Kumpulkan Ujian", use_container_width=True, type="primary"):
-                st.session_state.scroll_to_top = True 
+            if st.button("Kumpulkan Ujian", use_container_width=True, type="primary"): 
                 st.session_state.page = 'result'
+                st.session_state.scroll_to_top = True
                 st.rerun()
 
 # ==========================================
-# HALAMAN HASIL & PEMBAHASAN
+# HALAMAN HASIL
 # ==========================================
 def show_result_page():
     questions = st.session_state.exam_data
@@ -243,7 +227,6 @@ def show_result_page():
     correct_count = 0
     total_q = len(questions)
 
-    # Kalkulasi Nilai
     for i, q_data in enumerate(questions):
         user_ans = answers.get(str(i))
         if user_ans == q_data['answer']:
@@ -251,6 +234,14 @@ def show_result_page():
             
     score = (correct_count / total_q) * 100 if total_q > 0 else 0
 
+    components.html(
+        """
+        <script>
+            window.location.hash = "#top";
+        </script>
+        """,
+        height=0
+    )
     st.title("📊 Hasil Ujian")
     st.markdown(f"### Skor Anda: **{score:.2f}**")
     st.caption(f"Benar: {correct_count} | Salah/Kosong: {total_q - correct_count} | Total Soal: {total_q}")
@@ -263,7 +254,6 @@ def show_result_page():
         correct_ans = q_data['answer']
         is_correct = user_ans == correct_ans
 
-        # Desain blok pembahasan
         with st.expander(f"Soal {i+1} - {'✅ Benar' if is_correct else '❌ Salah'}"):
             st.markdown(f"**Pertanyaan:** {q_data['q']}")
             
@@ -281,7 +271,6 @@ def show_result_page():
             del st.session_state[key]
         st.session_state.scroll_to_top = True 
         st.rerun()
-
 
 # ==========================================
 # ROUTING HALAMAN
