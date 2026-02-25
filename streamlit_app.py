@@ -25,41 +25,84 @@ if 'end_time' not in st.session_state:
     st.session_state.end_time = None
 if 'exam_title' not in st.session_state:
     st.session_state.exam_title = ""
-if 'scroll_to_top' not in st.session_state:
-    st.session_state.scroll_to_top = False
-
-if st.session_state.scroll_to_top:
-    components.html(
-        """
-        <script>
-            // Mencari container utama Streamlit
-            var mainContainer = window.parent.document.querySelector('[data-testid="stAppViewContainer"]');
-            if (mainContainer) {
-                mainContainer.scrollTop = 0; // Scroll container ke 0
-            }
-            
-            // Backup untuk struktur lama atau mobile
-            window.parent.scrollTo(0, 0);
-        </script>
-        """,
-        height=0,
-        width=0,
-    )
-    st.session_state.scroll_to_top = False
 
 # 3. CSS Kustom 
 st.markdown("""
     <style>
-    div.stButton > button:first-child { background-color: #00BFFF; color: white; width: 100%; border: none; border-radius: 6px; font-weight: bold; }
-    div.stButton > button:first-child:hover { background-color: #1E90FF; color: white; }
+    /* --- TOMBOL UTAMA --- */
+    div.stButton > button:first-child { 
+        background-color: #00BFFF; 
+        color: white; 
+        width: 100%; 
+        border: 1px solid transparent; 
+        border-radius: 6px; 
+        font-weight: bold; 
+        padding: 10px 10px;
+    }
+    div.stButton > button:first-child:hover { 
+        background-color: #1E90FF; 
+        color: white; 
+    }
+
+    /* --- TOMBOL NAVIGASI SIDEBAR --- */
     .nav-btn > button:first-child { background-color: #F8F9FA; color: #333; border: 1px solid #DDD; }
-    .nav-btn > button:first-child:hover { background-color: #E2E6EA; color: black; }
-    div.row-widget.stRadio > div { flex-direction: column; gap: 10px; }
-    div.row-widget.stRadio > div > label { border: 1px solid #E2E6EA; padding: 15px 20px; border-radius: 8px; background-color: #FFFFFF; cursor: pointer; transition: all 0.2s ease-in-out; }
-    div.row-widget.stRadio > div > label:hover { border-color: #00BFFF; background-color: #F0F8FF; }
-    .sticky-header { position: sticky; top: 0; background: white; z-index: 999; padding: 15px 0; border-bottom: 1px solid #EEE; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;}
-    .correct-ans { color: #28a745; font-weight: bold; }
-    .wrong-ans { color: #dc3545; font-weight: bold; }
+    
+    /* --- GAYA PILIHAN JAWABAN (RADIO BUTTON) KOTAK --- */
+    /* Target Container Radio */
+    [data-testid="stRadio"] > div {
+        flex-direction: column !important;
+        gap: 15px !important; /* Jarak antar kotak jawaban */
+    }
+
+    /* Target Kotak Label Jawaban */
+    [data-testid="stRadio"] div[role="radiogroup"] label {
+        background-color: #ffffff !important;
+        padding: 15px 20px !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 10px !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        transition: all 0.2s ease-in-out !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03) !important;
+        cursor: pointer !important;
+    }
+
+    /* Efek Hover (Saat mouse diarahkan) */
+    [data-testid="stRadio"] label:hover {
+        border-color: #00BFFF !important;
+        background-color: #f4faff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 10px rgba(0,191,255,0.1) !important;
+        color: #00BFFF !important;
+    }
+
+    /* Target Teks di dalam pilihan */
+    [data-testid="stRadio"] label p {
+        font-size: 16px !important;
+        font-weight: 500 !important;
+        margin: 0 !important;
+        color: #333 !important;
+    }
+
+    /* --- STICKY HEADER --- */
+    .sticky-header { 
+        position: sticky; 
+        top: 0; 
+        background: rgba(255,255,255,0.95); 
+        z-index: 999; 
+        padding: 15px 0; 
+        border-bottom: 1px solid #EEE; 
+        margin-bottom: 20px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        backdrop-filter: blur(5px);
+    }
+
+    /* --- HASIL JAWABAN --- */
+    .correct-ans { color: #28a745; font-weight: bold; background: #e6ffec; padding: 2px 5px; border-radius: 4px; }
+    .wrong-ans { color: #dc3545; font-weight: bold; background: #ffe6e6; padding: 2px 5px; border-radius: 4px; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -94,20 +137,18 @@ def show_landing_page():
     col1, col2, col3 = st.columns(3)
     with col1:
         with st.container(border=True):
-            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK 1</div>", unsafe_allow_html=True)
+            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK NASIONALISME 1</div>", unsafe_allow_html=True)
             st.markdown("<small><br>⏱️ 30 Menit<br>📝 30 Soal<br></small>", unsafe_allow_html=True)
             st.write("")
             if st.button("Mulai Ujian", key="twk_1"):
-                st.session_state.scroll_to_top = True 
-                load_exam("twk_1.json", "Tes Wawasan Kebangsaan 1", 30)
+                load_exam("twk_1.json", "Tes Wawasan Kebangsaan - Nasionalisme 1", 30)
     with col2:
         with st.container(border=True):
-            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK 2</div>", unsafe_allow_html=True)
+            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK NASIONALISME 2</div>", unsafe_allow_html=True)
             st.markdown("<small><br>⏱️ 30 Menit<br>📝 30 Soal<br></small>", unsafe_allow_html=True)
             st.write("")
             if st.button("Mulai Ujian", key="twk_2"):
-                st.session_state.scroll_to_top = True 
-                load_exam("twk_2.json", "Tes Wawasan Kebangsaan 2", 30)
+                load_exam("twk_2.json", "Tes Wawasan Kebangsaan - Nasionalisme 2", 30)
 
 # ==========================================
 # HALAMAN UJIAN
@@ -120,20 +161,121 @@ def show_exam_page():
         st.error("Data ujian kosong.")
         return
 
-    # --- PANEL NAVIGASI SOAL (SIDEBAR) ---
-    st.sidebar.markdown("### 📋 Navigasi Soal")
-    st.sidebar.markdown("<small>⬜ Belum | 🟦 Sudah</small>", unsafe_allow_html=True)
-    st.sidebar.write("")
-    
-    cols = st.sidebar.columns(5)
-    for i in range(total_q):
-        status = "🟦" if str(i) in st.session_state.answers else "⬜"
+    # --- CSS KHUSUS HALAMAN UJIAN ---
+    st.markdown(f"""
+        <style>
+        /* 1. RESET STYLE TOMBOL SIDEBAR */
+        [data-testid="stSidebar"] div.stButton > button {{
+            width: 100%;
+            border-radius: 4px;       
+            height: 30px;             
+            padding: 0px;
+            font-size: 13px;          
+            line-height: 30px;
+            margin: 0px;              
+            transition: all 0.2s ease-in-out;
+            border: 1px solid transparent; 
+        }}
         
-        with cols[i % 5]:
-            if st.button(f"{i+1}\n{status}", key=f"nav_{i}"):
+        /* 2. MENGATUR JARAK ANTAR KOLOM (HORIZONTAL) */
+        /* Memaksa gap antar kolom menjadi sangat kecil (2px) */
+        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {{
+            gap: 6px !important;
+        }}
+
+        /* Mengatur padding di dalam kolom agar tidak memakan tempat */
+        [data-testid="stSidebar"] [data-testid="column"] {{
+            padding: 0 !important;
+            min-width: 0 !important;
+            flex: 1 1 auto !important;
+        }}
+
+        /* 3. MENGATUR JARAK ANTAR BARIS (VERTIKAL) */
+        /* Mengurangi jarak vertikal antar elemen button */
+        [data-testid="stSidebar"] .stElementContainer {{
+            margin-bottom: 3px !important; /* Jarak antar baris atas-bawah */
+        }}
+
+        /* 4. LOGIKA WARNA STATUS */
+        [data-testid="stSidebar"] button[kind="secondary"] {{
+            background-color: #f8f9fa !important;
+            color: #31333F !important;
+            border: 1px solid #dce0e6 !important;
+        }}
+        [data-testid="stSidebar"] button[kind="secondary"]:hover {{
+            background-color: #e2e6ea !important;
+            border-color: #adb5bd !important;
+            color: #000000 !important;
+        }}
+        [data-testid="stSidebar"] button[kind="primary"] {{
+            background-color: #00BFFF !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }}
+        [data-testid="stSidebar"] button[kind="primary"]:hover {{
+            background-color: #009ACD !important; 
+            color: white !important;
+        }}
+        </style>
+    """, unsafe_allow_html=True)
+
+    # --- PANEL NAVIGASI SOAL ---
+    st.sidebar.markdown("### 📋 Navigasi Soal")
+    st.sidebar.caption("🟦 : Sudah | ⬜ : Belum")
+    
+    grid_cols = st.sidebar.columns(5)
+    for i in range(total_q):
+        is_answered = str(i) in st.session_state.answers
+        
+        btn_type = "primary" if is_answered else "secondary"
+        label = f"{i+1}"
+        
+        # Masukkan tombol ke kolom yang sesuai secara berurutan
+        with grid_cols[i % 5]:
+            if st.button(label, key=f"nav_{i}", type=btn_type, use_container_width=True):
                 st.session_state.current_q = i
-                st.session_state.scroll_to_top = True 
                 st.rerun()
+
+    curr_num = st.session_state.current_q + 1
+    components.html(
+        f"""
+        <script>
+            // Tunggu sebentar agar elemen sidebar termuat sempurna
+            setTimeout(function() {{
+                const buttons = window.parent.document.querySelectorAll('[data-testid="stSidebar"] button');
+                const currentNum = "{curr_num}";
+
+                buttons.forEach(btn => {{
+                    // 1. RESET: Hapus style custom dari SEMUA tombol sidebar
+                    // Ini penting agar tombol yang TIDAK aktif kembali ke warna aslinya (Biru/Abu)
+                    btn.style.removeProperty('border');
+                    btn.style.removeProperty('background-color');
+                    btn.style.removeProperty('color');
+                    btn.style.removeProperty('font-weight');
+                    btn.style.removeProperty('transform');
+                    btn.style.removeProperty('box-shadow');
+
+                    // 2. CEK & HIGHLIGHT: Warnai HANYA tombol yang sesuai nomor sekarang
+                    if (btn.innerText.trim() === currentNum) {{
+                        btn.style.setProperty('border', '2px solid #00BFFF', 'important');
+                        btn.style.setProperty('background-color', '#f5f5ff', 'important');
+                        btn.style.setProperty('color', '#00BFFF', 'important');
+                        btn.style.setProperty('font-weight', 'bold', 'important');
+                        btn.style.setProperty('transform', 'scale(1.1)', 'important');
+                        btn.style.setProperty('box-shadow', '0px 2px 5px rgba(0,0,0,0.2)', 'important');
+                    }}
+                }});
+            }}, 100); // Delay 100ms untuk memastikan sinkronisasi
+        </script>
+        """,
+        height=0
+    )
+
+    st.sidebar.divider()
+    if st.sidebar.button("Kumpulkan Ujian", key="sidebar_finish", type="primary", use_container_width=True):
+        st.session_state.page = 'result'
+        st.rerun()
 
     # --- BAGIAN ATAS (STICKY HEADER & TIMER) ---
     time_left = int(st.session_state.end_time - time.time())
@@ -178,14 +320,20 @@ def show_exam_page():
     curr = st.session_state.current_q
     q_data = questions[curr]
 
-    st.caption(f"Soal {curr + 1} dari {total_q}")
+    st.markdown(f"**Soal {curr + 1} dari {total_q}** ")
     st.markdown(f"#### {q_data['q']}")
     st.write("")
 
     current_answer = st.session_state.answers.get(str(curr))
     index_val = q_data['opts'].index(current_answer) if current_answer in q_data['opts'] else None
 
-    selected = st.radio("Pilih jawaban:", options=q_data['opts'], index=index_val, key=f"radio_{curr}", label_visibility="collapsed")
+    selected = st.radio(
+        "Pilih jawaban:", 
+        options=q_data['opts'], 
+        index=index_val, 
+        key=f"radio_{curr}", 
+        label_visibility="collapsed" # Menyembunyikan label "Pilih jawaban" agar bersih
+    )
     
     if selected:
         st.session_state.answers[str(curr)] = selected
@@ -199,22 +347,19 @@ def show_exam_page():
 
     with col_prev:
         if curr > 0:
-            if st.button("⬅️ Sebelumnya", use_container_width=True): 
+            if st.button("**Sebelumnya** ", use_container_width=True): 
                 st.session_state.current_q -= 1
-                st.session_state.scroll_to_top = True
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
 
     with col_next:
         if curr < total_q - 1:
-            if st.button("Selanjutnya ➡️", use_container_width=True):
+            if st.button("**Selanjutnya** ", use_container_width=True):
                 st.session_state.current_q += 1
-                st.session_state.scroll_to_top = True
                 st.rerun()
         else:
             if st.button("Kumpulkan Ujian", use_container_width=True, type="primary"): 
                 st.session_state.page = 'result'
-                st.session_state.scroll_to_top = True
                 st.rerun()
 
 # ==========================================
@@ -264,12 +409,12 @@ def show_result_page():
                 st.markdown(f"Jawaban Benar: <span class='correct-ans'>{correct_ans}</span>", unsafe_allow_html=True)
             
             st.info(f"**Penjelasan:**\n{q_data.get('explanation', 'Tidak ada penjelasan tersedia.')}")
+            
 
     st.write("")
     if st.button("Kembali ke Beranda"):
         for key in list(st.session_state.keys()):
             del st.session_state[key]
-        st.session_state.scroll_to_top = True 
         st.rerun()
 
 # ==========================================
