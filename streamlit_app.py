@@ -4,6 +4,29 @@ import os
 import time
 import streamlit.components.v1 as components
 
+def trigger_scroll_to_top():
+    # Ambil waktu sekarang sebagai penanda unik
+    timestamp = time.time()
+    
+    # Masukkan timestamp ke dalam string HTML (misalnya dalam komentar atau div tersembunyi).
+    # Karena string 'js' ini akan berbeda setiap kali fungsi dipanggil, 
+    # Streamlit akan menganggapnya konten baru dan menjalan ulang script-nya.
+    js = f"""
+    <script>
+        // Timestamp unik: {timestamp}
+        setTimeout(function() {{
+            var element = window.parent.document.getElementById("top-anchor");
+            if (element) {{
+                element.scrollIntoView({{behavior: "smooth", block: "start", inline: "nearest"}});
+            }}
+        }}, 100);
+    </script>
+    <div style="display:none;">{timestamp}</div>
+    """
+    
+    # HAPUS parameter key=... karena components.html tidak mendukungnya
+    components.html(js, height=0)
+
 # 1. Konfigurasi Halaman Dasar
 st.set_page_config(
     page_title="Portal Ujian Minimalis",
@@ -25,6 +48,8 @@ if 'end_time' not in st.session_state:
     st.session_state.end_time = None
 if 'exam_title' not in st.session_state:
     st.session_state.exam_title = ""
+if 'prev_q' not in st.session_state:
+    st.session_state.prev_q = -1 # Inisialisasi dengan angka yang tidak mungkin
 
 # 3. CSS Kustom 
 st.markdown("""
@@ -34,10 +59,10 @@ st.markdown("""
         background-color: #00BFFF; 
         color: white; 
         width: 100%; 
-        border: 1px solid transparent; 
+        border: 0px; 
         border-radius: 6px; 
         font-weight: bold; 
-        padding: 10px 10px;
+        padding: 5px 10px;
     }
     div.stButton > button:first-child:hover { 
         background-color: #1E90FF; 
@@ -128,32 +153,86 @@ def load_exam(file_name, title, duration_minutes):
 # HALAMAN LANDING PAGE
 # ==========================================
 def show_landing_page():
-    st.markdown("#### 🎓 Uji Coba Tes CPNS")
+    if st.session_state.current_q != st.session_state.prev_q:
+        trigger_scroll_to_top()
+        # Perbarui prev_q agar scroll tidak terjadi lagi saat klik radio button
+        st.session_state.prev_q = st.session_state.current_q
+
+    st.markdown("<div id='top-anchor' style='display: block; height: 0px; scroll-margin-top: 80px;'><h4>🎓 Uji Coba Tes CPNS</h4></div>", unsafe_allow_html=True)
     st.divider()
     st.title("Selamat Datang.")
     st.markdown("Silakan pilih modul ujian yang tersedia di bawah ini.")
     st.write("") 
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         with st.container(border=True):
-            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK NASIONALISME 1</div>", unsafe_allow_html=True)
-            st.markdown("<small><br>⏱️ 30 Menit<br>📝 30 Soal<br></small>", unsafe_allow_html=True)
+            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - NASIONALISME 1</div>", unsafe_allow_html=True)
+            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
             st.write("")
-            if st.button("Mulai Ujian", key="twk_1"):
-                load_exam("twk_1.json", "Tes Wawasan Kebangsaan - Nasionalisme 1", 30)
+            if st.button("Mulai Ujian", key="twk_nas_1"):
+                load_exam("twk_nas_1.json", "Tes Wawasan Kebangsaan - Nasionalisme 1", 15)
     with col2:
         with st.container(border=True):
-            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK NASIONALISME 2</div>", unsafe_allow_html=True)
-            st.markdown("<small><br>⏱️ 30 Menit<br>📝 30 Soal<br></small>", unsafe_allow_html=True)
+            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - NASIONALISME 2</div>", unsafe_allow_html=True)
+            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
             st.write("")
-            if st.button("Mulai Ujian", key="twk_2"):
-                load_exam("twk_2.json", "Tes Wawasan Kebangsaan - Nasionalisme 2", 30)
+            if st.button("Mulai Ujian", key="twk_nas_2"):
+                load_exam("twk_nas_2.json", "Tes Wawasan Kebangsaan - Nasionalisme 2", 15)
+    with col3:
+        with st.container(border=True):
+            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - INTEGRITAS 1</div>", unsafe_allow_html=True)
+            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
+            st.write("")
+            if st.button("Mulai Ujian", key="twk_int_1"):
+                load_exam("twk_int_1.json", "Tes Wawasan Kebangsaan - Integritas 1", 15)
+    with col4:
+        with st.container(border=True):
+            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - INTEGRITAS 2</div>", unsafe_allow_html=True)
+            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
+            st.write("")
+            if st.button("Mulai Ujian", key="twk_int_2"):
+                load_exam("twk_int_2.json", "Tes Wawasan Kebangsaan - Integritas 2", 15)
+
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        with st.container(border=True):
+            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - BELA NEGARA 1</div>", unsafe_allow_html=True)
+            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
+            st.write("")
+            if st.button("Mulai Ujian", key="twk_bln_1"):
+                load_exam("twk_bln_1.json", "Tes Wawasan Kebangsaan - Bela Negara 1", 15)
+    with col2:
+        with st.container(border=True):
+            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - BELA NEGARA 2</div>", unsafe_allow_html=True)
+            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
+            st.write("")
+            if st.button("Mulai Ujian", key="twk_bln_2"):
+                load_exam("twk_bln_2.json", "Tes Wawasan Kebangsaan - Bela Negara 2", 15)
+    with col3:
+        with st.container(border=True):
+            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - PILAR NEGARA 1</div>", unsafe_allow_html=True)
+            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
+            st.write("")
+            if st.button("Mulai Ujian", key="twk_pnr_1"):
+                load_exam("twk_pnr_1.json", "Tes Wawasan Kebangsaan - Pilar Negara 1", 15)
+    with col4:
+        with st.container(border=True):
+            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - PILAR NEGARA 2</div>", unsafe_allow_html=True)
+            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
+            st.write("")
+            if st.button("Mulai Ujian", key="twk_pnr_2"):
+                load_exam("twk_pnr_2.json", "Tes Wawasan Kebangsaan - Pilar Negara 2", 15)
 
 # ==========================================
 # HALAMAN UJIAN
 # ==========================================
 def show_exam_page():
+    if st.session_state.current_q != st.session_state.prev_q:
+        trigger_scroll_to_top()
+        # Perbarui prev_q agar scroll tidak terjadi lagi saat klik radio button
+        st.session_state.prev_q = st.session_state.current_q
+
     questions = st.session_state.exam_data
     total_q = len(questions)
     
@@ -282,8 +361,8 @@ def show_exam_page():
     
     st.markdown(f"""
         <div class="sticky-header">
-            <div style="font-weight: bold; font-size: 18px; color: #0B192C;">Ujian: {st.session_state.exam_title}</div>
-            <div id="timer_display" style="font-size: 20px; font-weight: bold; color: #F2613F;">⏱️ Menghitung...</div>
+            <div id="top-anchor" style="display: block; height: 0px; scroll-margin-top: 80px; font-weight: bold; font-size: 18px; color: #0B192C;">Ujian: {st.session_state.exam_title}</div>
+            <div id="timer_display" style="display: block; height: 0px; scroll-margin-top: 80px; font-size: 20px; font-weight: bold; color: #F2613F;">⏱️ Menghitung...</div>
         </div>
     """, unsafe_allow_html=True)
     
@@ -320,8 +399,9 @@ def show_exam_page():
     curr = st.session_state.current_q
     q_data = questions[curr]
 
+    st.write("")
     st.markdown(f"**Soal {curr + 1} dari {total_q}** ")
-    st.markdown(f"#### {q_data['q']}")
+    st.markdown(f"**{q_data['q']}** ")
     st.write("")
 
     current_answer = st.session_state.answers.get(str(curr))
@@ -366,6 +446,11 @@ def show_exam_page():
 # HALAMAN HASIL
 # ==========================================
 def show_result_page():
+    if st.session_state.current_q != st.session_state.prev_q:
+        trigger_scroll_to_top()
+        # Perbarui prev_q agar scroll tidak terjadi lagi saat klik radio button
+        st.session_state.prev_q = st.session_state.current_q
+
     questions = st.session_state.exam_data
     answers = st.session_state.answers
     
@@ -379,20 +464,16 @@ def show_result_page():
             
     score = (correct_count / total_q) * 100 if total_q > 0 else 0
 
-    components.html(
-        """
-        <script>
-            window.location.hash = "#top";
-        </script>
-        """,
-        height=0
-    )
-    st.title("📊 Hasil Ujian")
+   #
+    #st.title("<div id='top-anchor'>📊 Hasil Ujian</div>", unsafe_allow_html=True)
+    st.markdown("<div id='top-anchor' style='display: block; height: 0px; scroll-margin-top: 80px;'><h4>📊 Hasil Ujian</h4></div>", unsafe_allow_html=True)
+    st.write("")
+    st.write("")
     st.markdown(f"### Skor Anda: **{score:.2f}**")
     st.caption(f"Benar: {correct_count} | Salah/Kosong: {total_q - correct_count} | Total Soal: {total_q}")
     st.divider()
 
-    st.markdown("### Pembahasan Soal")
+    st.markdown("#### Pembahasan Soal")
     
     for i, q_data in enumerate(questions):
         user_ans = answers.get(str(i), "Tidak dijawab")
