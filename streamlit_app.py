@@ -50,6 +50,8 @@ if 'exam_title' not in st.session_state:
     st.session_state.exam_title = ""
 if 'prev_q' not in st.session_state:
     st.session_state.prev_q = -1 # Inisialisasi dengan angka yang tidak mungkin
+if 'prev_page' not in st.session_state:
+    st.session_state.prev_page = 'landing'
 
 # 3. CSS Kustom 
 st.markdown("""
@@ -81,7 +83,7 @@ st.markdown("""
 
     /* Target Kotak Label Jawaban */
     [data-testid="stRadio"] div[role="radiogroup"] label {
-        background-color: #ffffff !important;
+        background-color: var(--secondary-background-color) !important;
         padding: 15px 20px !important;
         border: 1px solid #e0e0e0 !important;
         border-radius: 10px !important;
@@ -95,11 +97,8 @@ st.markdown("""
 
     /* Efek Hover (Saat mouse diarahkan) */
     [data-testid="stRadio"] label:hover {
-        border-color: #00BFFF !important;
-        background-color: #f4faff !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 4px 10px rgba(0,191,255,0.1) !important;
-        color: #00BFFF !important;
     }
 
     /* Target Teks di dalam pilihan */
@@ -107,17 +106,16 @@ st.markdown("""
         font-size: 16px !important;
         font-weight: 500 !important;
         margin: 0 !important;
-        color: #333 !important;
+        color: var(--text-color) !important;
     }
 
     /* --- STICKY HEADER --- */
     .sticky-header { 
         position: sticky; 
         top: 0; 
-        background: rgba(255,255,255,0.95); 
+        background-color: var(--background-color); 
         z-index: 999; 
-        padding: 15px 0; 
-        border-bottom: 1px solid #EEE; 
+        padding: 15px 0;  
         margin-bottom: 20px; 
         display: flex; 
         justify-content: space-between; 
@@ -152,10 +150,12 @@ def load_exam(file_name, title, duration_minutes):
 # ==========================================
 # HALAMAN LANDING PAGE
 # ==========================================
+# ==========================================
+# HALAMAN LANDING PAGE
+# ==========================================
 def show_landing_page():
     if st.session_state.current_q != st.session_state.prev_q:
         trigger_scroll_to_top()
-        # Perbarui prev_q agar scroll tidak terjadi lagi saat klik radio button
         st.session_state.prev_q = st.session_state.current_q
 
     st.markdown("<div id='top-anchor' style='display: block; height: 0px; scroll-margin-top: 80px;'><h4>🎓 Uji Coba Tes CPNS</h4></div>", unsafe_allow_html=True)
@@ -164,74 +164,76 @@ def show_landing_page():
     st.markdown("Silakan pilih modul ujian yang tersedia di bawah ini.")
     st.write("") 
 
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        with st.container(border=True):
-            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - NASIONALISME 1</div>", unsafe_allow_html=True)
-            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
-            st.write("")
-            if st.button("Mulai Ujian", key="twk_nas_1"):
-                load_exam("twk_nas_1.json", "Tes Wawasan Kebangsaan - Nasionalisme 1", 15)
-    with col2:
-        with st.container(border=True):
-            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - NASIONALISME 2</div>", unsafe_allow_html=True)
-            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
-            st.write("")
-            if st.button("Mulai Ujian", key="twk_nas_2"):
-                load_exam("twk_nas_2.json", "Tes Wawasan Kebangsaan - Nasionalisme 2", 15)
-    with col3:
-        with st.container(border=True):
-            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - INTEGRITAS 1</div>", unsafe_allow_html=True)
-            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
-            st.write("")
-            if st.button("Mulai Ujian", key="twk_int_1"):
-                load_exam("twk_int_1.json", "Tes Wawasan Kebangsaan - Integritas 1", 15)
-    with col4:
-        with st.container(border=True):
-            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - INTEGRITAS 2</div>", unsafe_allow_html=True)
-            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
-            st.write("")
-            if st.button("Mulai Ujian", key="twk_int_2"):
-                load_exam("twk_int_2.json", "Tes Wawasan Kebangsaan - Integritas 2", 15)
+    # 1. DATABASE MODUL UJIAN (Mempermudah penambahan soal ke depannya)
+    # Anda bisa menambahkan modul TIU dan TKP baru dengan mudah di sini.
+    exam_catalog = [
+        {"id": "twk_nas_1", "type": "TWK", "title": "TWK - NASIONALISME 1", "desc": "Tes Wawasan Kebangsaan - Nasionalisme 1", "file": "twk_nas_1.json", "time": 15, "q_count": 10},
+        {"id": "twk_nas_2", "type": "TWK", "title": "TWK - NASIONALISME 2", "desc": "Tes Wawasan Kebangsaan - Nasionalisme 2", "file": "twk_nas_2.json", "time": 15, "q_count": 10},
+        {"id": "twk_int_1", "type": "TWK", "title": "TWK - INTEGRITAS 1", "desc": "Tes Wawasan Kebangsaan - Integritas 1", "file": "twk_int_1.json", "time": 15, "q_count": 10},
+        {"id": "twk_int_2", "type": "TWK", "title": "TWK - INTEGRITAS 2", "desc": "Tes Wawasan Kebangsaan - Integritas 2", "file": "twk_int_2.json", "time": 15, "q_count": 10},
+        {"id": "twk_bln_1", "type": "TWK", "title": "TWK - BELA NEGARA 1", "desc": "Tes Wawasan Kebangsaan - Bela Negara 1", "file": "twk_bln_1.json", "time": 15, "q_count": 10},
+        {"id": "twk_bln_2", "type": "TWK", "title": "TWK - BELA NEGARA 2", "desc": "Tes Wawasan Kebangsaan - Bela Negara 2", "file": "twk_bln_2.json", "time": 15, "q_count": 10},
+        {"id": "twk_pnr_1", "type": "TWK", "title": "TWK - PILAR NEGARA 1", "desc": "Tes Wawasan Kebangsaan - Pilar Negara 1", "file": "twk_pnr_1.json", "time": 15, "q_count": 10},
+        {"id": "twk_pnr_2", "type": "TWK", "title": "TWK - PILAR NEGARA 2", "desc": "Tes Wawasan Kebangsaan - Pilar Negara 2", "file": "twk_pnr_2.json", "time": 15, "q_count": 10},
+        # -- Contoh Tambahan Modul TIU & TKP (Pastikan file json-nya ada) --
+        {"id": "tiu_1", "type": "TIU", "title": "TIU - ANALOGI 1", "desc": "Tes Intelegensia Umum - Analogi 1", "file": "tiu_1.json", "time": 15, "q_count": 10},
+        {"id": "tkp_1", "type": "TKP", "title": "TKP - PELAYANAN 1", "desc": "Tes Karakteristik Pribadi - Pelayanan Publik 1", "file": "tkp_1.json", "time": 15, "q_count": 10},
+    ]
 
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        with st.container(border=True):
-            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - BELA NEGARA 1</div>", unsafe_allow_html=True)
-            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
-            st.write("")
-            if st.button("Mulai Ujian", key="twk_bln_1"):
-                load_exam("twk_bln_1.json", "Tes Wawasan Kebangsaan - Bela Negara 1", 15)
-    with col2:
-        with st.container(border=True):
-            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - BELA NEGARA 2</div>", unsafe_allow_html=True)
-            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
-            st.write("")
-            if st.button("Mulai Ujian", key="twk_bln_2"):
-                load_exam("twk_bln_2.json", "Tes Wawasan Kebangsaan - Bela Negara 2", 15)
-    with col3:
-        with st.container(border=True):
-            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - PILAR NEGARA 1</div>", unsafe_allow_html=True)
-            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
-            st.write("")
-            if st.button("Mulai Ujian", key="twk_pnr_1"):
-                load_exam("twk_pnr_1.json", "Tes Wawasan Kebangsaan - Pilar Negara 1", 15)
-    with col4:
-        with st.container(border=True):
-            st.markdown("<div style='padding-top: 10px;font-weight: bold;'>TWK - PILAR NEGARA 2</div>", unsafe_allow_html=True)
-            st.markdown("<small><br>⏱️ 15 Menit<br>📝 10 Soal<br></small>", unsafe_allow_html=True)
-            st.write("")
-            if st.button("Mulai Ujian", key="twk_pnr_2"):
-                load_exam("twk_pnr_2.json", "Tes Wawasan Kebangsaan - Pilar Negara 2", 15)
+    # 2. KOMPONEN FILTER
+    col_filter, col_empty = st.columns([1, 3]) # Membuat selectbox tidak terlalu lebar
+    with col_filter:
+        selected_category = st.selectbox(
+            "Pilih Kategori Ujian:", 
+            options=["Semua", "TWK", "TIU", "TKP"],
+            index=0
+        )
+    st.write("")
+
+    # 3. LOGIKA FILTERING
+    filtered_exams = []
+    for exam in exam_catalog:
+        if selected_category == "Semua" or exam["type"] == selected_category:
+            filtered_exams.append(exam)
+
+    # 4. RENDER UI GRID SECARA DINAMIS
+    if not filtered_exams:
+        st.info(f"Belum ada modul ujian yang tersedia untuk kategori **{selected_category}** saat ini.")
+    else:
+        # Loop per 4 modul (membuat baris)
+        for i in range(0, len(filtered_exams), 4):
+            cols = st.columns(4)
+            # Loop untuk mengisi 4 kolom di dalam baris tersebut
+            for j in range(4):
+                if i + j < len(filtered_exams):
+                    exam = filtered_exams[i + j]
+                    with cols[j]:
+                        with st.container(border=True):
+                            st.markdown(f"<div style='padding-top: 10px;font-weight: bold;'>{exam['title']}</div>", unsafe_allow_html=True)
+                            st.markdown(f"<small><br>⏱️ {exam['time']} Menit<br>📝 {exam['q_count']} Soal<br></small>", unsafe_allow_html=True)
+                            st.write("")
+                            if st.button("Mulai Ujian", key=f"btn_{exam['id']}"):
+                                load_exam(exam["file"], exam["desc"], exam["time"])
 
 # ==========================================
 # HALAMAN UJIAN
 # ==========================================
 def show_exam_page():
+    should_scroll = False
+    
+    # 1. Cek apakah pindah halaman (dari landing ke exam)
+    if st.session_state.page != st.session_state.prev_page:
+        should_scroll = True
+        st.session_state.prev_page = st.session_state.page
+        
+    # 2. Cek apakah pindah soal
     if st.session_state.current_q != st.session_state.prev_q:
-        trigger_scroll_to_top()
-        # Perbarui prev_q agar scroll tidak terjadi lagi saat klik radio button
+        should_scroll = True
         st.session_state.prev_q = st.session_state.current_q
+
+    # Picu scroll jika salah satu kondisi di atas terpenuhi
+    if should_scroll:
+        trigger_scroll_to_top()
 
     questions = st.session_state.exam_data
     total_q = len(questions)
@@ -303,18 +305,24 @@ def show_exam_page():
     st.sidebar.markdown("### 📋 Navigasi Soal")
     st.sidebar.caption("🟦 : Sudah | ⬜ : Belum")
     
-    grid_cols = st.sidebar.columns(5)
-    for i in range(total_q):
-        is_answered = str(i) in st.session_state.answers
+    for i in range(0, total_q, 5):
+        # Buat 5 kolom baru HANYA untuk baris ini
+        cols = st.sidebar.columns(5) 
         
-        btn_type = "primary" if is_answered else "secondary"
-        label = f"{i+1}"
-        
-        # Masukkan tombol ke kolom yang sesuai secara berurutan
-        with grid_cols[i % 5]:
-            if st.button(label, key=f"nav_{i}", type=btn_type, use_container_width=True):
-                st.session_state.current_q = i
-                st.rerun()
+        # Isi ke 5 kolom tersebut
+        for j in range(5):
+            q_idx = i + j
+            # Pastikan index soal tidak melebihi total soal
+            if q_idx < total_q:
+                is_answered = str(q_idx) in st.session_state.answers
+                btn_type = "primary" if is_answered else "secondary"
+                label = f"{q_idx+1}"
+                
+                # Masukkan tombol ke kolom (j) pada baris saat ini
+                with cols[j]:
+                    if st.button(label, key=f"nav_{q_idx}", type=btn_type, use_container_width=True):
+                        st.session_state.current_q = q_idx
+                        st.rerun()
 
     curr_num = st.session_state.current_q + 1
     components.html(
@@ -361,8 +369,8 @@ def show_exam_page():
     
     st.markdown(f"""
         <div class="sticky-header">
-            <div id="top-anchor" style="display: block; height: 0px; scroll-margin-top: 80px; font-weight: bold; font-size: 18px; color: #0B192C;">Ujian: {st.session_state.exam_title}</div>
-            <div id="timer_display" style="display: block; height: 0px; scroll-margin-top: 80px; font-size: 20px; font-weight: bold; color: #F2613F;">⏱️ Menghitung...</div>
+            <div id="top-anchor" style="display: block; height: 0px; scroll-margin-top: 80px; font-weight: bold; font-size: 18px; color: var(--text-color) !important;">Ujian: {st.session_state.exam_title}</div>
+            <div id="timer_display" style="display: block; height: 0px; scroll-margin-top: 80px; font-size: 20px; font-weight: bold; color: #F2613F;"></div>
         </div>
     """, unsafe_allow_html=True)
     
@@ -375,7 +383,19 @@ def show_exam_page():
                     if (timeLeft <= 0) {{
                         clearInterval(timerId);
                         timerDisplay.innerHTML = "WAKTU HABIS";
-                        window.parent.location.reload();
+                        
+                        // --- [PERBAIKAN DI SINI] ---
+                        // Jangan gunakan window.parent.location.reload();
+                        // Cari tombol "Kumpulkan Ujian" di sidebar/bawah lalu klik otomatis
+                        var buttons = window.parent.document.querySelectorAll("button");
+                        for (var i = 0; i < buttons.length; i++) {{
+                            if (buttons[i].innerText.trim() === "Kumpulkan Ujian") {{
+                                buttons[i].click();
+                                break;
+                            }}
+                        }}
+                        // ---------------------------
+
                     }} else {{
                         var m = Math.floor(timeLeft / 60);
                         var s = timeLeft % 60;
@@ -399,6 +419,8 @@ def show_exam_page():
     curr = st.session_state.current_q
     q_data = questions[curr]
 
+    st.write("")
+    st.write("")
     st.write("")
     st.markdown(f"**Soal {curr + 1} dari {total_q}** ")
     st.markdown(f"**{q_data['q']}** ")
@@ -446,10 +468,9 @@ def show_exam_page():
 # HALAMAN HASIL
 # ==========================================
 def show_result_page():
-    if st.session_state.current_q != st.session_state.prev_q:
+    if st.session_state.page != st.session_state.prev_page:
         trigger_scroll_to_top()
-        # Perbarui prev_q agar scroll tidak terjadi lagi saat klik radio button
-        st.session_state.prev_q = st.session_state.current_q
+        st.session_state.prev_page = st.session_state.page
 
     questions = st.session_state.exam_data
     answers = st.session_state.answers
@@ -466,14 +487,13 @@ def show_result_page():
 
    #
     #st.title("<div id='top-anchor'>📊 Hasil Ujian</div>", unsafe_allow_html=True)
-    st.markdown("<div id='top-anchor' style='display: block; height: 0px; scroll-margin-top: 80px;'><h4>📊 Hasil Ujian</h4></div>", unsafe_allow_html=True)
-    st.write("")
+    st.markdown("<div id='top-anchor' style='display: block; height: 0px; scroll-margin-top: 80px;'>📊 Hasil Ujian</div>", unsafe_allow_html=True)
     st.write("")
     st.markdown(f"### Skor Anda: **{score:.2f}**")
     st.caption(f"Benar: {correct_count} | Salah/Kosong: {total_q - correct_count} | Total Soal: {total_q}")
     st.divider()
 
-    st.markdown("#### Pembahasan Soal")
+    st.markdown("### Pembahasan Soal")
     
     for i, q_data in enumerate(questions):
         user_ans = answers.get(str(i), "Tidak dijawab")
